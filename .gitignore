@@ -1,0 +1,29 @@
+# .gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis/
+.DS_Store
+*.sqlite3
+
+# PPT 파일들은 GitHub에 올리지 않음 (웹에서 업로드)
+ppt_files/
+ppt_metadata.json
