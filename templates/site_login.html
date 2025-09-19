@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>병원 내부 시스템 접근</title>
+    <title>PPT 라이브러리 접근</title>
     <style>
         * {
             margin: 0;
@@ -174,18 +174,9 @@
 </head>
 <body>
     <div class="login-container">
-        <div class="hospital-icon">
-            <img src="{{ url_for('static', filename='images/mascot.png') }}" 
-                 alt="병원 마스코트" />
-        </div>
-        
         <div class="login-header">
-            <h1>병원 내부 시스템</h1>
-            <p>PPT 검색 라이브러리 접근</p>
-        </div>
-
-        <div class="security-notice">
-            <strong>보안 알림:</strong> 이 시스템은 병원 내부용입니다. 승인된 의료진만 접근 가능합니다.
+            <h1>PPT 라이브러리</h1>
+            <p>접근 비밀번호를 입력하세요</p>
         </div>
 
         <div class="flash-messages">
@@ -207,17 +198,13 @@
                        id="password" 
                        name="password" 
                        class="form-input" 
-                       placeholder="병원 내부 시스템 접근 코드를 입력하세요"
+                       placeholder="비밀번호를 입력하세요"
                        required 
                        autocomplete="current-password">
             </div>
             
-            <button type="submit" class="login-btn">시스템 접근</button>
+            <button type="submit" class="login-btn">로그인</button>
         </form>
-
-        <div class="footer-text">
-            PPT 검색 라이브러리 v1.0 | 병원 내부용
-        </div>
     </div>
 </body>
 </html>
