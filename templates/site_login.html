@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>관리자 로그인 - PPT 검색 라이브러리</title>
+    <title>병원 내부 시스템 접근</title>
     <style>
         * {
             margin: 0;
@@ -27,30 +27,64 @@
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 40px;
+            padding: 48px 40px;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
+            text-align: center;
         }
 
-        .login-header {
-            text-align: center;
-            margin-bottom: 32px;
+        .hospital-icon {
+            width: 80px;
+            height: 80px;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            overflow: hidden;
+        }
+
+        .hospital-icon img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
         }
 
         .login-header h1 {
-            font-size: 1.5rem;
+            font-size: 1.75rem;
             font-weight: 600;
             color: #1e40af;
             margin-bottom: 8px;
+            letter-spacing: -0.025em;
         }
 
         .login-header p {
             color: #6b7280;
+            font-size: 1rem;
+            margin-bottom: 32px;
+            font-weight: 400;
+        }
+
+        .security-notice {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 24px;
             font-size: 0.875rem;
+            color: #0369a1;
+            border-left: 3px solid #0ea5e9;
+        }
+
+        .security-notice strong {
+            color: #1e40af;
         }
 
         .form-group {
             margin-bottom: 24px;
+            text-align: left;
         }
 
         .form-label {
@@ -68,6 +102,7 @@
             border-radius: 6px;
             font-size: 1rem;
             transition: all 0.2s ease;
+            background: #ffffff;
         }
 
         .form-input:focus {
@@ -84,7 +119,7 @@
             padding: 12px 16px;
             border-radius: 6px;
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
         }
@@ -94,26 +129,13 @@
             transform: translateY(-1px);
         }
 
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 24px;
-            color: #6b7280;
-            text-decoration: none;
-            font-size: 0.875rem;
-        }
-
-        .back-link:hover {
-            color: #1e40af;
-        }
-
         .flash-messages {
             margin-bottom: 24px;
         }
 
         .flash-message {
             padding: 12px 16px;
-            border-radius: 6px;
+            border-radius: 8px;
             margin-bottom: 8px;
             font-size: 0.875rem;
         }
@@ -135,13 +157,35 @@
             color: #0369a1;
             border: 1px solid #bae6fd;
         }
+
+        .footer-text {
+            margin-top: 24px;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 20px;
+                padding: 32px 24px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
+        <div class="hospital-icon">
+            <img src="{{ url_for('static', filename='images/mascot.png') }}" 
+                 alt="병원 마스코트" />
+        </div>
+        
         <div class="login-header">
-            <h1>관리자 로그인</h1>
-            <p>PPT 파일 관리를 위해 로그인하세요</p>
+            <h1>병원 내부 시스템</h1>
+            <p>PPT 검색 라이브러리 접근</p>
+        </div>
+
+        <div class="security-notice">
+            <strong>보안 알림:</strong> 이 시스템은 병원 내부용입니다. 승인된 의료진만 접근 가능합니다.
         </div>
 
         <div class="flash-messages">
@@ -158,20 +202,22 @@
 
         <form method="POST">
             <div class="form-group">
-                <label for="password" class="form-label">관리자 비밀번호</label>
+                <label for="password" class="form-label">접근 비밀번호</label>
                 <input type="password" 
                        id="password" 
                        name="password" 
                        class="form-input" 
-                       placeholder="비밀번호를 입력하세요"
+                       placeholder="병원 내부 시스템 접근 코드를 입력하세요"
                        required 
                        autocomplete="current-password">
             </div>
             
-            <button type="submit" class="login-btn">로그인</button>
+            <button type="submit" class="login-btn">시스템 접근</button>
         </form>
 
-        <a href="{{ url_for('index') }}" class="back-link">← 메인 페이지로 돌아가기</a>
+        <div class="footer-text">
+            PPT 검색 라이브러리 v1.0 | 병원 내부용
+        </div>
     </div>
 </body>
 </html>
