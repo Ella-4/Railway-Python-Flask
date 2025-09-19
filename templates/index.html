@@ -243,47 +243,64 @@
         }
 
         .admin-panel {
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            border-radius: 6px;
-            padding: 20px;
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 24px;
             margin-bottom: 32px;
+            box-shadow: 0 1px 3px rgba(14, 165, 233, 0.1);
         }
 
         .admin-section {
-            margin-bottom: 24px;
+            background: #ffffff;
+            border: 1px solid #e0f2fe;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
         .admin-section:last-child {
             margin-bottom: 0;
         }
 
+        .admin-section h4 {
+            color: #0369a1 !important;
+            font-weight: 600 !important;
+            margin-bottom: 16px !important;
+            font-size: 1rem !important;
+        }
+
         .upload-area {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
         }
 
         .upload-btn {
-            background: #1e40af;
+            background: #0ea5e9;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 12px 20px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.875rem;
             font-weight: 500;
-            transition: background 0.2s ease;
+            transition: all 0.2s ease;
             align-self: flex-start;
         }
 
         .upload-btn:hover {
-            background: #1d4ed8;
+            background: #0284c7;
+            transform: translateY(-1px);
         }
 
         .upload-status {
             font-size: 0.875rem;
-            color: #92400e;
+            color: #0369a1;
+            padding: 8px 12px;
+            background: #e0f2fe;
+            border-radius: 4px;
+            border-left: 3px solid #0ea5e9;
         }
 
         .flash-messages {
@@ -332,19 +349,20 @@
         }
 
         .rescan-btn {
-            background: #1e40af;
+            background: #0ea5e9;
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 12px 20px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.875rem;
             font-weight: 500;
-            transition: background 0.2s ease;
+            transition: all 0.2s ease;
         }
 
         .rescan-btn:hover {
-            background: #1d4ed8;
+            background: #0284c7;
+            transform: translateY(-1px);
         }
 
         @media (max-width: 768px) {
@@ -403,25 +421,29 @@
             </div>
 
             {% if is_admin %}
-            <div class="admin-panel show" id="adminPanel">
-                <h3 style="margin-bottom: 16px; color: #92400e; font-weight: 600;">관리자 도구</h3>
+            <div class="admin-panel" id="adminPanel">
+                <h3 style="margin-bottom: 20px; color: #0369a1; font-weight: 600; font-size: 1.25rem;">관리자 도구</h3>
                 
                 <div class="admin-section">
-                    <h4 style="margin-bottom: 12px; color: #92400e; font-weight: 500;">파일 업로드</h4>
+                    <h4>파일 업로드</h4>
                     <div class="upload-area">
-                        <input type="file" id="fileInput" multiple accept=".ppt,.pptx" style="display: none;">
-                        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                            PPT 파일 선택
+                        <input type="file" id="fileInput" multiple accept=".ppt,.pptx" 
+                               style="padding: 8px; border: 1px solid #bae6fd; border-radius: 4px; background: #ffffff;">
+                        <button class="upload-btn" onclick="manualUpload()">
+                            업로드 시작
                         </button>
-                        <div id="uploadStatus" class="upload-status"></div>
+                        <div id="uploadStatus" class="upload-status" style="display: none;"></div>
                     </div>
                 </div>
 
                 <div class="admin-section">
-                    <h4 style="margin-bottom: 12px; color: #92400e; font-weight: 500;">파일 관리</h4>
+                    <h4>파일 관리</h4>
                     <button class="rescan-btn" onclick="rescanFiles()">
                         파일 다시 스캔
                     </button>
+                    <p style="margin-top: 12px; color: #0369a1; font-size: 0.875rem;">
+                        새로운 PPT 파일을 추가한 후 이 버튼을 클릭하세요
+                    </p>
                 </div>
             </div>
             {% endif %}
@@ -453,6 +475,7 @@
 
     <script>
         let allFiles = [];
+        const isAdmin = {{ 'true' if is_admin else 'false' }};
 
         // 페이지 로드 시 파일 목록 불러오기
         document.addEventListener('DOMContentLoaded', function() {
@@ -464,12 +487,6 @@
                     searchFiles();
                 }
             });
-
-            // 파일 업로드 이벤트 (관리자만)
-            const fileInput = document.getElementById('fileInput');
-            if (fileInput) {
-                fileInput.addEventListener('change', handleFileUpload);
-            }
         });
 
         async function loadFiles() {
@@ -517,6 +534,7 @@
                 }
 
                 const fileSizeKB = Math.round(file.file_size / 1024);
+                const deleteButton = isAdmin ? `<button class="delete-btn" onclick="deleteFile('${file.filename}')">삭제</button>` : '';
 
                 return `
                     <div class="ppt-item">
@@ -524,15 +542,13 @@
                             <div class="ppt-title">${displayTitle}</div>
                             <div class="ppt-filename">${file.filename} (${fileSizeKB}KB)</div>
                         </div>
-                        <a href="/api/download/${encodeURIComponent(file.filename)}" 
-                           class="download-btn" download>
-                            다운로드
-                        </a>
-                        {% if is_admin %}
-                        <button class="delete-btn" onclick="deleteFile('${file.filename}')">
-                            삭제
-                        </button>
-                        {% endif %}
+                        <div>
+                            <a href="/api/download/${encodeURIComponent(file.filename)}" 
+                               class="download-btn" download>
+                                다운로드
+                            </a>
+                            ${deleteButton}
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -567,14 +583,77 @@
         }
 
         function escapeRegExp(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\        function escapeRegExp(string) {
             return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }');
         }
 
-        function toggleAdmin() {
-            const panel = document.getElementById('adminPanel');
-            panel.classList.toggle('show');
+        async function manualUpload() {
+            const fileInput = document.getElementById('fileInput');
+            const files = fileInput.files;
+            
+            if (files.length === 0) {
+                alert('파일을 먼저 선택해주세요.');
+                return;
+            }
+
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = '<div style="color: #0369a1;">📤 파일 업로드 중...</div>';
+
+            const formData = new FormData();
+            for (let file of files) {
+                formData.append('files', file);
+            }
+
+            try {
+                const response = await fetch('/admin/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = `
+                        <div style="color: #0369a1;">
+                            ✅ ${result.success}개 파일 업로드 완료
+                            ${result.errors.length > 0 ? `<br><span style="color: #dc2626;">오류: ${result.errors.join(', ')}</span>` : ''}
+                        </div>
+                    `;
+                    
+                    // 파일 목록 새로고침
+                    await loadFiles();
+                    
+                    // 파일 입력 초기화
+                    fileInput.value = '';
+                } else {
+                    statusDiv.innerHTML = `<div style="color: #dc2626;">❌ 오류: ${result.error}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div style="color: #dc2626;">❌ 업로드 실패: ${error.message}</div>`;
+            }
+        }
+
+        async function deleteFile(filename) {
+            if (!confirm(`"${filename}" 파일을 삭제하시겠습니까?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/admin/delete/${encodeURIComponent(filename)}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert(result.message);
+                    await loadFiles(); // 목록 새로고침
+                } else {
+                    alert(`삭제 실패: ${result.error}`);
+                }
+            } catch (error) {
+                alert(`삭제 중 오류: ${error.message}`);
+            }
         }
     </script>
 </body>
