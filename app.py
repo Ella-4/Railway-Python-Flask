@@ -16,7 +16,14 @@ app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-this')
 UPLOAD_FOLDER = 'ppt_files'
 METADATA_FILE = 'ppt_metadata.json'
 ALLOWED_EXTENSIONS = {'ppt', 'pptx'}
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')  # Railway 환경변수로 설정
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
+SITE_PASSWORD = os.environ.get('SITE_PASSWORD')  # 사이트 접근 비밀번호
+
+# 환경변수 검증
+if not ADMIN_PASSWORD:
+    raise ValueError("ADMIN_PASSWORD 환경변수가 설정되지 않았습니다!")
+if not SITE_PASSWORD:
+    raise ValueError("SITE_PASSWORD 환경변수가 설정되지 않았습니다!")
 
 # 폴더 생성
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -87,16 +94,55 @@ def scan_existing_files():
     save_metadata(metadata)
     return metadata
 
+def check_site_access():
+    """사이트 접근 권한 확인"""
+    return session.get('site_authenticated', False)
+
+@app.route('/site-login')
+def site_login_page():
+    # 이미 인증된 경우 메인으로 리다이렉트
+    if check_site_access():
+        return redirect(url_for('index'))
+    return render_template('site_login.html')
+
+@app.route('/site-login', methods=['POST'])
+def site_login():
+    password = request.form.get('password')
+    if password == SITE_PASSWORD:
+        session['site_authenticated'] = True
+        flash('사이트 접근이 승인되었습니다.', 'success')
+        return redirect(url_for('index'))
+    else:
+        flash('접근 비밀번호가 잘못되었습니다.', 'error')
+        return redirect(url_for('site_login_page'))
+
+@app.route('/site-logout')
+def site_logout():
+    session.pop('site_authenticated', None)
+    session.pop('is_admin', None)  # 관리자 세션도 함께 제거
+    flash('사이트에서 로그아웃되었습니다.', 'info')
+    return redirect(url_for('site_login_page'))
+
 @app.route('/')
 def index():
+    # 사이트 접근 권한 확인
+    if not check_site_access():
+        return redirect(url_for('site_login_page'))
     return render_template('index.html', is_admin=session.get('is_admin', False))
 
 @app.route('/admin/login')
 def admin_login_page():
+    # 사이트 접근 권한 먼저 확인
+    if not check_site_access():
+        return redirect(url_for('site_login_page'))
     return render_template('admin_login.html')
 
 @app.route('/admin/login', methods=['POST'])
 def admin_login():
+    # 사이트 접근 권한 먼저 확인
+    if not check_site_access():
+        return redirect(url_for('site_login_page'))
+        
     password = request.form.get('password')
     if password == ADMIN_PASSWORD:
         session['is_admin'] = True
@@ -194,12 +240,18 @@ def admin_delete_file(filename):
 @app.route('/api/files')
 def get_files():
     """모든 PPT 파일 목록 반환"""
+    if not check_site_access():
+        return jsonify({'error': '사이트 접근 권한이 필요합니다.'}), 403
+    
     metadata = load_metadata()
     return jsonify(metadata)
 
 @app.route('/api/search')
 def search_files():
     """제목으로 검색"""
+    if not check_site_access():
+        return jsonify({'error': '사이트 접근 권한이 필요합니다.'}), 403
+        
     query = request.args.get('q', '').lower().strip()
     metadata = load_metadata()
     
@@ -217,6 +269,9 @@ def search_files():
 @app.route('/api/download/<filename>')
 def download_file(filename):
     """파일 다운로드"""
+    if not check_site_access():
+        return jsonify({'error': '사이트 접근 권한이 필요합니다.'}), 403
+        
     # 보안을 위해 파일명 검증
     if not allowed_file(filename):
         abort(404)
@@ -230,7 +285,10 @@ def download_file(filename):
 
 @app.route('/api/rescan')
 def rescan_files():
-    """파일 재스캔 (개발자용)"""
+    """파일 재스캔 (관리자용)"""
+    if not check_site_access():
+        return jsonify({'error': '사이트 접근 권한이 필요합니다.'}), 403
+        
     metadata = scan_existing_files()
     return jsonify({
         'message': f'{len(metadata)}개 파일 스캔 완료',
